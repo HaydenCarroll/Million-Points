@@ -1,12 +1,13 @@
+package application;
 
 import java.util.ArrayList;
 import java.util.Random;
 
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 
 public class Dot {
+	
 	final double G= 6.67*Math.pow(10, -11);
 	ArrayList<Dot> dotList;
 	double mass;
@@ -108,17 +109,36 @@ public class Dot {
 		}else {
 			double x2=0;
 			for (int i=0;i<dotList.size();i++) {
+				//System.out.println("List size for dot: "+dotList.get(i)+" is "+dotList.size());
+				if(dotList.get(i).equals(this)) {
+					continue;
+				}
 				//System.out.println("gEquation x"+i+" = "+ gEquationX(dotList.get(i)));
 				double xPull=gEquationX(dotList.get(i));
 				if(Double.isInfinite(xPull)) {
 					xPull=0.00000;
 				}
+				
+				
 				x2+=xPull;
 			}
 			
-			//x2 = x2/dotList.size();
-			//System.out.println("X pull = "+x2);
-			return x2;
+			x2 = x2/dotList.size();
+			
+			
+			double accl = x2/this.mass;
+			boolean isNegative=false;
+			if(accl<0) {
+				accl=accl*-1;
+				isNegative=true;
+			}
+			
+			accl=Math.sqrt(accl);
+			if(isNegative) {
+				accl=accl*-1;
+			}
+			//System.out.println("X pull = "+accl);
+			return accl;
 		}
 	}
 	
@@ -128,17 +148,37 @@ public class Dot {
 		}else {
 			double y2=0;
 			for (int i=0;i<dotList.size();i++) {
+				if(dotList.get(i).equals(this)) {
+					continue;
+				}
 				//System.out.println("gEquation y"+i+" = "+ gEquationY(dotList.get(i)));
 				double yPull=gEquationY(dotList.get(i));
+				
+				
 				if(Double.isInfinite(yPull)) {
 					yPull=0.00000;
 				}
+				
 				y2+=yPull;
 			}
 			
 			y2 = y2/dotList.size();
-			System.out.println("Y pull = "+y2);
-			return y2;
+			
+			double accl = y2/this.mass;
+			boolean isNegative=false;
+			if(accl<0) {
+				accl=accl*-1;
+				isNegative=true;
+			}
+			
+			accl=Math.sqrt(accl);
+			if(isNegative) {
+				accl=accl*-1;
+			}
+			
+			
+			System.out.println("Y pull = "+accl);
+			return accl;
 		}
 	}
 	
@@ -160,12 +200,13 @@ public class Dot {
 	
 	
 	public double dEquationX(Dot d) {
-		double num = getX()-d.getX();
+		double num = d.getX()-getX();
 		return num*100;
 	}
+	//You need to average out the x and y distance it acts as though if x distance was 0 then total distance is 0
 	
 	public double dEquationY(Dot d) {
-		double num = getY()-d.getY();
+		double num = (d.getY()-getY());
 		//System.out.println("Y distance = "+num);
 		return num*100;
 	}
@@ -173,6 +214,10 @@ public class Dot {
 	
 	public double distance(Dot d) {
 		return Math.sqrt(Math.pow((this.x-d.getX()), 2)+Math.pow(this.y-d.getY(), 2));
+	}
+	
+	public double gEquation(Dot d) {
+		return ((this.mass*d.getMass())/Math.pow(distance(d), 2));
 	}
 	public void update() {
 		this.velX+=getXPull();
@@ -189,5 +234,6 @@ public class Dot {
 		
 	}
 	
+
 
 }

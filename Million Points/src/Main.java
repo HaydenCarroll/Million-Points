@@ -1,39 +1,27 @@
+package application;
+	
+import java.util.ArrayList;
+
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
+import javafx.stage.Stage;
+import javafx.util.Duration;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Slider;
-import javafx.scene.image.Image;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Background;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
-import javafx.scene.shape.Circle;
-import javafx.stage.Stage;
-import javafx.util.Duration;
 
-import java.util.ArrayList;
-import java.util.Scanner;
 
-import javafx.*;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
-
-public class Main extends Application{
+public class Main extends Application {
+	
 	public ArrayList<Dot> dList = new ArrayList<Dot>();
 	public Pane pane;
 	public Slider dotCount;
 	public Button enter;
 	private Timeline animation;
-
-	public static void main(String[] args) {
-
-		// TODO Auto-generated method stub
-		Application.launch(args);
-
-	}
-
-	
 	@Override
 	public void start(Stage primaryStage) {
 		try {
@@ -42,15 +30,20 @@ public class Main extends Application{
 			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 			primaryStage.setScene(scene);
 			primaryStage.show();
-			
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
 	}
 	
+	public static void main(String[] args) {
+		launch(args);
+	}
+	
 	public void populate() {
+		dList.clear();
 		pane.getChildren().clear();
 		int num = (int) dotCount.getValue();
+		//int num =2;
 		for (int i=0;i<num;i++) {
 			
 			int x = (int) (Math.random()*pane.getWidth());
@@ -61,6 +54,7 @@ public class Main extends Application{
 			dList.add(d);
 			pane.getChildren().add(d.getCircle());
 		}
+		//System.out.println("Size of list: "+dList.size());
 		for (int i=0;i<dList.size();i++) {
 			dList.get(i).setList(dList);
 		}
