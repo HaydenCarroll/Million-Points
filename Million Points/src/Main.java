@@ -76,5 +76,9 @@ public class Main extends Application {
 			dList.get(i).update();
 		}
 	}
+	
+	public Pane getPane() {
+		return pane;
+	}
 
 }
