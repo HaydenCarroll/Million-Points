@@ -1,8 +1,8 @@
-package application;
-
 import java.util.ArrayList;
 import java.util.Random;
 
+import javafx.animation.Animation;
+import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.scene.layout.Pane;
@@ -20,6 +20,8 @@ public class Dot {
 	double velX;
 	double velY;
 	Circle dot;
+	int dotCount=0;
+
 	
 	
 	public Dot(double m, double x, double y) {
@@ -94,12 +96,7 @@ public class Dot {
 			}
 			
 			//if(dotList.get(i).dot.getCenterX()==dot.getCenterX()&&dotList.get(i).dot.getCenterY()==dot.getCenterY()) {
-			if(isInside(current)) {
-				grow = new Timeline(new KeyFrame(Duration.millis(20), e -> merge(current)));
-				grow.setCycleCount(Timeline.INDEFINITE);
-				grow.setRate(1);
-				grow.play();
-			}
+			
 			//System.out.println("adding vector for dot :"+i);
 			f+=getForceY(dotList.get(i));
 			
@@ -109,7 +106,7 @@ public class Dot {
 		f=tempF/(dotList.size());
 		tempF=f;
 		f=tempF/mass;
-		System.out.println("ForceY = "+f+" of dot :"+this);
+		//System.out.println("ForceY = "+f+" of dot :"+this);
 		return f;
 	}
 	
@@ -118,8 +115,10 @@ public class Dot {
 		return (mass*d.mass/(2*(d.y-y)));
 	}
 	
-	public boolean isInside(Dot d) {
-		if(distance(d)<dot.getRadius()) {
+	
+	public boolean isTouching(Dot d) {
+		if(distance(d)<=dot.getRadius()) {
+			System.out.println("Touch");
 			return true;
 		}else {
 			return false;
@@ -130,68 +129,67 @@ public class Dot {
 		return Math.sqrt((Math.pow((dot.getCenterX()-d.dot.getCenterX()), 2))+Math.pow((dot.getCenterY()-d.dot.getCenterY()), 2));
 	}
 
-	public void merge(Dot d) {
-		System.out.println("Merging");
-		double sRadius,bRadius;
+	
+	public void pop(Dot d) {
+
+		Pane p = (Pane) d.dot.getParent();
+		d.dot.setCenterX(Math.random()*p.getWidth());
+		d.dot.setCenterY(Math.random()*p.getHeight());
+		d.dot.setRadius(Math.random()*30+3);
+		Random rand = new Random();
 		
-		if(dot.getRadius()>d.dot.getRadius()) {
-			sRadius=d.dot.getRadius();
-			bRadius=dot.getRadius();
-			double diff=bRadius-sRadius;
-			
-//			for(int i=0;i<diff*2;i++) {
-//				d.dot.setRadius(d.dot.getRadius()-diff/(diff*2));
-//				dot.setRadius(dot.getRadius()+diff/(diff*2));
-//			}
-			
-			while(d.dot.getRadius()>.05) {
-				dot.setRadius(dot.getRadius()+.05);
-				d.dot.setRadius(d.dot.getRadius()-.05);
+		int r =rand.nextInt(255);
+		int g = rand.nextInt(255);
+		int b = rand.nextInt(255);
+		
+		Color rc = Color.rgb(r, g, b);
+		d.dot.setFill(rc);
+		d.dot.setOpacity(0);
+		FadeTransition fadeIn = new FadeTransition(Duration.millis(2000),d.dot);
+		fadeIn.setFromValue(0);
+		fadeIn.setToValue(0.7);
+		fadeIn.play();
+	}
+	
+
+	
+
+	
+	public boolean isOutside(Dot d) {
+		Pane p = (Pane) d.dot.getParent();
+		if(d.dot.getCenterX()<0||d.dot.getCenterX()>p.getWidth()) {
+			if(d.dot.getCenterY()<0||d.dot.getCenterY()>p.getHeight()) {
+				System.out.println("Outside");
+				return true;
+			}else {
+				return false;
 			}
-			d.dotList.remove(d);
-			dotList.remove(d);
-			d.dot.setVisible(false);
-			
-			
 		}else {
-			sRadius=dot.getRadius();
-			bRadius=d.dot.getRadius();
-			
-			double diff=bRadius-sRadius;
-			
-			while(dot.getRadius()>.05) {
-				d.dot.setRadius(d.dot.getRadius()+.05);
-				dot.setRadius(dot.getRadius()-.05);
+			return false;
+		}
+		
+	}
+	
+	public void check() {
+		for(int i=0;i<dotList.size();i++) {
+			if(dotList.get(i).mass==mass) {
+				continue;
 			}
-			dotList.remove(dot);
-			d.dotList.remove(dot);
-			dot.setVisible(false);
-			
-//			for(int i=0;i<diff;i++) {
-//				d.dot.setRadius(d.dot.getRadius()+diff/(diff*2));
-//				dot.setRadius(dot.getRadius()-diff/(diff*2));
-//			}
-		}
-		
-		
-		
-	}
-	
-	
-	public void bounce() {
-		
-		if(dot.getCenterX()==0||dot.getCenterX()==p.getWidth()) {
-			velX=velX*-1;
-		}
-		if(dot.getCenterY()==0||dot.getCenterY()==p.getHeight()) {
-			velY=velY*-1;
+			Dot current = dotList.get(i);
+			if(isTouching(current)) {
+				pop(current);
+			}
+			if(isOutside(current)) {
+				pop(current);
+			}
 		}
 	}
+	
 	
 	public void update() {
 		this.velX+=getXPull();
 		this.velY+=getYPull();
-		bounce();
+		check();
 		
 		if(Math.abs(this.velX)>this.MAXV) {
 			if(this.velX>0) {
@@ -214,7 +212,7 @@ public class Dot {
 		
 		
 		
-		System.out.println("XVelocity :"+this.velX);
+		//System.out.println("XVelocity :"+this.velX);
 		
 		double newX = this.dot.getCenterX()+this.velX;
 		double newY = this.dot.getCenterY()+this.velY;
