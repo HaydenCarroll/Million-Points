@@ -12,7 +12,7 @@ import javafx.util.Duration;
 
 public class Dot {
 	Timeline grow;
-	final double MAXV = .1;
+	double MAXV = .1;
 	ArrayList<Dot> dotList;
 	double mass;
 	double x;
@@ -183,6 +183,14 @@ public class Dot {
 				pop(current);
 			}
 		}
+	}
+	
+	public void jiggleStart() {
+		MAXV=1;
+	}
+	
+	public void jiggleEnd() {
+		MAXV=.1;
 	}
 	
 	
