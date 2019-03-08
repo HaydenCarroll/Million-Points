@@ -1,43 +1,38 @@
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+import javax.sound.sampled.LineUnavailableException;
+
+import com.sun.glass.ui.Screen;
+
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Slider;
-import javafx.scene.image.Image;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Background;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
-import java.awt.MouseInfo;
-import java.awt.event.KeyEvent;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Scanner;
-import java.util.concurrent.Future;
-
-import javax.swing.KeyStroke;
-
-import javafx.*;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
-
 public class Main extends Application{
-	public ArrayList<Dot> dList = new ArrayList<Dot>();
+	private ArrayList<Dot> dList = new ArrayList<Dot>();
 	public Pane pane ;
-	public Slider dotCount;
-	public Button enter;
 	private Timeline animation;
-	
-	
-
-	public static void main(String[] args) {
+	private List<Screen> screenList = Screen.getScreens();
+	private int screenNo=0;
+	private boolean isRunning =false;
+	private int num =100;
+	private int maxSize =30;
+	private int minSize = 3;
+	private Random rand = new Random();
+	public static void main(String[] args) throws LineUnavailableException {
+		
+		
 		
 		// TODO Auto-generated method stub
 		Application.launch(args);
@@ -49,73 +44,104 @@ public class Main extends Application{
 	public void start(Stage primaryStage) {
 		try {
 			BorderPane root = (BorderPane)FXMLLoader.load(getClass().getResource("Display.fxml"));
-			Scene scene = new Scene(root,700,560);
+			Scene scene = new Scene(root,400,400);
 			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 			primaryStage.setScene(scene);
 			primaryStage.initStyle(StageStyle.TRANSPARENT);
 			scene.setFill(Color.TRANSPARENT);
-			primaryStage.initStyle(StageStyle.UNDECORATED);
-
-	       
-			
+			//primaryStage.initStyle(StageStyle.UNDECORATED);
+			primaryStage.setWidth(Screen.getMainScreen().getWidth());
+			primaryStage.setHeight(Screen.getMainScreen().getHeight());
 			primaryStage.show();
-			primaryStage.setFullScreen(true);
+			primaryStage.setAlwaysOnTop(true);
+			
 			
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
 	}
 	
-	public void populate() {
+	public void nextScreen() {
+		if(screenList.size()==screenNo) {
+			screenNo=0;
+		}
+		Stage prim = (Stage) pane.getScene().getWindow();
+		Screen mainScreen = screenList.get(screenNo);
+		prim.setWidth(mainScreen.getWidth());
+		prim.setHeight(mainScreen.getHeight());
+		prim.setX(mainScreen.getX());
+		prim.setY(mainScreen.getY());
+		screenNo++;
+		
+	}
+	
+	private void populate() {
 		dList.clear();
 		pane.getChildren().clear();
-		//int num = (int) dotCount.getValue();
-		int num =100;
+		
 		for (int i=0;i<num;i++) {
 			
 			int x = (int) (Math.random()*pane.getWidth());
 			int y = (int) (Math.random()*pane.getHeight());
-			Dot d = new Dot((Math.random()*30)+3,x,y);
+			Dot d = new Dot((Math.random()*maxSize)+minSize,x,y);
 			
+			int r =rand.nextInt(255);
+			int g = rand.nextInt(255);
+			int b = rand.nextInt(255);
 			
+			Color rc = Color.rgb(r, g, b);
+			d.dot.setFill(rc);
+			r =rand.nextInt(255);
+			g = rand.nextInt(255);
+			b = rand.nextInt(255);
+			rc = Color.rgb(r, g, b);
+			d.dot.setStroke(rc);
 			dList.add(d);
 			pane.getChildren().add(d.getCircle());
 		}
-		//System.out.println("Size of list: "+dList.size());
 		for (int i=0;i<dList.size();i++) {
 			dList.get(i).setList(dList);
 		}
 	}
 	
-	public void play() {
+	public void play(){
+		if(isRunning==true) {
+			return;
+		}
+		populate();
 		animation = new Timeline(new KeyFrame(Duration.millis(20), e -> update()));
 		animation.setCycleCount(Timeline.INDEFINITE);
 		animation.setRate(1);
 		animation.play();
+		isRunning=true;
 	}
 	
+	//not used
 	public void pause() {
 		animation.pause();
 	}
 	
-	public void update() {
+	private void update() {
 		for (int i=0;i<dList.size();i++) {
 			dList.get(i).update();
 		}
 	}
 	
+	//not used
 	public void jiggleStart() {
 		for (int i=0;i<dList.size();i++) {
 			dList.get(i).jiggleStart();
 		}
 	}
 	
+	//not used
 	public void jiggleEnd() {
 		for (int i=0;i<dList.size();i++) {
 			dList.get(i).jiggleEnd();
 		}
 	}
 	
+	//not used
 	public void jiggle() {
 		Timeline beat = new Timeline(new KeyFrame(Duration.millis(10),e-> jiggleStart()));
 		beat.setCycleCount(5);
@@ -124,13 +150,12 @@ public class Main extends Application{
 		
 	}
 	
-	public void drag() {
-		double x = MouseInfo.getPointerInfo().getLocation().getX();
-		double y = MouseInfo.getPointerInfo().getLocation().getY();
-		pane.setLayoutX(x);
-		pane.setLayoutY(y);
-		
+	
+	public void quit() {
+		System.exit(0);
 	}
+	
+	
 	
 	
 

@@ -1,7 +1,5 @@
 import java.util.ArrayList;
 import java.util.Random;
-
-import javafx.animation.Animation;
 import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -11,7 +9,6 @@ import javafx.scene.shape.Circle;
 import javafx.util.Duration;
 
 public class Dot {
-	Timeline grow;
 	double MAXV = .1;
 	ArrayList<Dot> dotList;
 	double mass;
@@ -21,8 +18,9 @@ public class Dot {
 	double velY;
 	Circle dot;
 	int dotCount=0;
-
-	
+	Random rand;
+	private int maxSize =50;
+	private int minSize = 3;
 	
 	public Dot(double m, double x, double y) {
 		this.mass=m;
@@ -34,15 +32,21 @@ public class Dot {
 		dot.setCenterX(x);
 		dot.setCenterY(y);
 		dot.setRadius(m);
-		Random rand = new Random();
+		rand = new Random();
 		
 		int r =rand.nextInt(255);
 		int g = rand.nextInt(255);
 		int b = rand.nextInt(255);
 		
 		Color rc = Color.rgb(r, g, b);
+		r =rand.nextInt(255);
+		g = rand.nextInt(255);
+		b = rand.nextInt(255);
+		rc = Color.rgb(r, g, b);
+		this.dot.setStroke(rc);
+		
 		dot.setFill(rc);
-		dot.setOpacity(0.7);
+		dot.setOpacity(rand.nextDouble()*.7);
 		this.dotList= new ArrayList<Dot>();
 	}
 	
@@ -89,15 +93,11 @@ public class Dot {
 	public double getYPull() {
 		double f=0;
 		for (int i=0;i<dotList.size();i++) {
-			Dot current = dotList.get(i);
 			
 			if(dotList.get(i).mass==mass) {
 				continue;
 			}
 			
-			//if(dotList.get(i).dot.getCenterX()==dot.getCenterX()&&dotList.get(i).dot.getCenterY()==dot.getCenterY()) {
-			
-			//System.out.println("adding vector for dot :"+i);
 			f+=getForceY(dotList.get(i));
 			
 		}
@@ -106,7 +106,6 @@ public class Dot {
 		f=tempF/(dotList.size());
 		tempF=f;
 		f=tempF/mass;
-		//System.out.println("ForceY = "+f+" of dot :"+this);
 		return f;
 	}
 	
@@ -118,7 +117,7 @@ public class Dot {
 	
 	public boolean isTouching(Dot d) {
 		if(distance(d)<=dot.getRadius()) {
-			System.out.println("Touch");
+			jiggle();
 			return true;
 		}else {
 			return false;
@@ -135,19 +134,23 @@ public class Dot {
 		Pane p = (Pane) d.dot.getParent();
 		d.dot.setCenterX(Math.random()*p.getWidth());
 		d.dot.setCenterY(Math.random()*p.getHeight());
-		d.dot.setRadius(Math.random()*30+3);
-		Random rand = new Random();
+		d.dot.setRadius(Math.random()*maxSize+minSize);
 		
 		int r =rand.nextInt(255);
 		int g = rand.nextInt(255);
 		int b = rand.nextInt(255);
-		
 		Color rc = Color.rgb(r, g, b);
 		d.dot.setFill(rc);
+		
+		r =rand.nextInt(255);
+		g = rand.nextInt(255);
+		b = rand.nextInt(255);
+		rc = Color.rgb(r, g, b);
+		this.dot.setStroke(rc);
 		d.dot.setOpacity(0);
 		FadeTransition fadeIn = new FadeTransition(Duration.millis(2000),d.dot);
 		fadeIn.setFromValue(0);
-		fadeIn.setToValue(0.7);
+		fadeIn.setToValue(rand.nextDouble()*.7);
 		fadeIn.play();
 	}
 	
@@ -159,7 +162,6 @@ public class Dot {
 		Pane p = (Pane) d.dot.getParent();
 		if(d.dot.getCenterX()<0||d.dot.getCenterX()>p.getWidth()) {
 			if(d.dot.getCenterY()<0||d.dot.getCenterY()>p.getHeight()) {
-				System.out.println("Outside");
 				return true;
 			}else {
 				return false;
@@ -178,15 +180,21 @@ public class Dot {
 			Dot current = dotList.get(i);
 			if(isTouching(current)) {
 				pop(current);
+				this.mass++;
+				dot.setRadius(dot.getRadius()+(current.dot.getRadius()/5));
 			}
 			if(isOutside(current)) {
 				pop(current);
 			}
+			if(dot.getRadius()>50) {
+				pop(this);
+			}
 		}
 	}
-	
+	//rand.nextDouble()*
 	public void jiggleStart() {
-		MAXV=1;
+		MAXV=10/mass;
+		
 	}
 	
 	public void jiggleEnd() {
@@ -194,11 +202,21 @@ public class Dot {
 	}
 	
 	
+	//not used
+	public void jiggle() {
+		Timeline beat = new Timeline(new KeyFrame(Duration.millis(900),e-> jiggleStart()));
+		beat.setCycleCount(3);
+		beat.setOnFinished(e-> jiggleEnd());
+		beat.play();
+		
+	}
+	
+	
 	public void update() {
 		this.velX+=getXPull();
 		this.velY+=getYPull();
 		check();
-		
+	
 		if(Math.abs(this.velX)>this.MAXV) {
 			if(this.velX>0) {
 				this.velX=this.MAXV;
@@ -217,18 +235,10 @@ public class Dot {
 			}
 		}
 		
-		
-		
-		
-		//System.out.println("XVelocity :"+this.velX);
-		
 		double newX = this.dot.getCenterX()+this.velX;
 		double newY = this.dot.getCenterY()+this.velY;
-		//System.out.println("Moving x : "+(newX-velX));
-		
 		this.dot.setCenterX(newX);
 		this.x=newX;
-		//System.out.println("Moving y to: "+newY);
 		this.dot.setCenterY(newY);
 		this.y=newY;
 		
